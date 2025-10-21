@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.python-version
+.venv/
+db.sqlite3
+media/
+staticfiles/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+.idea/
+.vscode/
+.env
+.env.*
