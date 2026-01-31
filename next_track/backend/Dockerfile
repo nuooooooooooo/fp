@@ -10,6 +10,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 COPY ./backend/app /app/backend/app
 
+CMD ["uvicorn", "backend.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
 FROM builder as dev-envs
 
 RUN <<EOF
