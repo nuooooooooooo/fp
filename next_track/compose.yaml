@@ -2,6 +2,7 @@ services:
   api:
     build:
       context: .
+      dockerfile: backend/Dockerfile
       target: builder
     container_name: fastapi-application
     environment:
