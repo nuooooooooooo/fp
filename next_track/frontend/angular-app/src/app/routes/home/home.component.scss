@@ -1,0 +1,14 @@
+.ellipsis {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Number of lines to show */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 3em; /* Adjust based on line height */
+    min-height: 3em; /* Ensure it takes up space of two lines */
+    line-clamp: 2; /* Number of lines to show */
+  }
+
+  .course-card {
+    min-height: 16.5rem;
+  }

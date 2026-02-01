@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+// Card background colors for different genres
+.card--random {
+    background: #A7F3D0;
+}
+
+.card--pop {
+    background: #FDE68A;
+}
+
+.card--rock {
+    background: #93C5FD;
+}
+
+.card--indie {
+    background: #FCA5A5;
+}
+
+.card--classical {
+    background: #C4B5FD;
+}
+
+
+.card--funk {
+    background: #FDBA74;
+}
+
+
+.card--rnb {
+    background: #67E8F9;
+}
+
+.card--lofi {
+    background: #F9A8D4;
+}
+
