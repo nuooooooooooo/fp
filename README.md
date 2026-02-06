@@ -1,3 +1,4 @@
 ## Final Project
 
-The project was started with the official FastAPI template: https://fastapi.tiangolo.com/project-generation/. 
+Example of a backend structure:
+https://www.freecodecamp.org/news/deploy-fastapi-postgresql-app-on-render/#heading-project-structure
