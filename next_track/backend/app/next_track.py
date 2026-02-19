@@ -2,9 +2,9 @@ from fastapi import FastAPI, Depends
 from sqlmodel import SQLModel, Session, select
 from fastapi.routing import APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.core.db import engine, get_session
-from app.models.models import Item
+from app.config.config import settings
+from app.config.db import engine, get_session
+from app.models.item import Item
 
 
 
