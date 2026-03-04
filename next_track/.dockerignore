@@ -1,0 +1,17 @@
+.git
+.gitignore
+.DS_Store
+
+# Not needed by the API image build context.
+frontend
+documentation
+
+# Common local/runtime artifacts.
+**/__pycache__
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.venv
+**/venv
+**/node_modules
+*.log
