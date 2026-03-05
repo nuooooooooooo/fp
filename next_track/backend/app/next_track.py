@@ -5,9 +5,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config.config import settings
 from app.config.db import engine, get_session
 from app.config.initialize_db import initialize_db
-import app.models
+from app.controllers.recommendation_controller import (
+    router as recommendation_router,
+    bootstrap_recommender,
+)
+import app.models  
 
-# Initializes the app
+
+
+# initializes the app
 app = FastAPI(
     title="NextTrack",
     version="1.0.0",
@@ -18,7 +24,7 @@ app = FastAPI(
 api_router = APIRouter(prefix=settings.API_V1_STR)
 
 
-# Sets all CORS enabled origins
+# sets all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
@@ -27,13 +33,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Creates the database tables when the app starts
+# creates the database tables when the app starts
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)
     initialize_db(song_limit=100) # populates the db with the datasets
+    with Session(engine) as session:
+        bootstrap_recommender(app, session)
 
-#  Root endpoint
+#  root endpoint
 @app.get("/")
 def root():
     return {"message": "API is running"}
@@ -48,4 +56,6 @@ def health():
 def hello_world():
     return {"message": "OK"}
 
+
+api_router.include_router(recommendation_router)
 app.include_router(api_router)

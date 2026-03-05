@@ -15,5 +15,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install -r requirements.txt
 
 COPY ./backend/app /app/app
+COPY ./data /app/data
 
 CMD ["uvicorn", "app.next_track:app", "--host", "0.0.0.0", "--port", "8000"]
