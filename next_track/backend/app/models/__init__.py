@@ -1,5 +1,5 @@
 from .artist import Artist
-from .genre import ElectronicGenre, ExperimentalGenre, HipHopGenre, JazzFolkGenre, MetalGenre, OtherGenre, PopGenre, RockGenre
+from .genre import ElectronicGenre, ExperimentalGenre, Genre, HipHopGenre, JazzFolkGenre, MetalGenre, OtherGenre, PopGenre, RockGenre
 from .genre_song import (
     ElectronicGenreSong,
     ExperimentalGenreSong,
@@ -21,6 +21,7 @@ __all__ = [
     "ElectronicGenreSong",
     "ExperimentalGenre",
     "ExperimentalGenreSong",
+    "Genre",
     "HipHopGenre",
     "HipHopGenreSong",
     "JazzFolkGenre",

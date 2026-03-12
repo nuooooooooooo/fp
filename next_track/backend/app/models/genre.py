@@ -5,6 +5,10 @@ import uuid
 # shared properties
 class GenreBase(SQLModel):
     name: str = Field(min_length=1, max_length=255)
+
+
+class Genre(GenreBase, table=True):
+    genre_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     
 # individual genre table models    
 class RockGenre(GenreBase, table=True):

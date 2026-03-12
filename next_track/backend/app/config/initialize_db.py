@@ -10,10 +10,10 @@ from pathlib import Path
 import pandas
 from sqlmodel import Session, select
 
-import app.models  
+import app.models  # noqa: F401  # Ensure all tables are registered in metadata.
 from app.config.db import engine
 from app.models.artist import Artist
-from app.models.genre import ElectronicGenre, ExperimentalGenre, HipHopGenre, JazzFolkGenre, MetalGenre, OtherGenre, PopGenre, RockGenre
+from app.models.genre import ElectronicGenre, ExperimentalGenre, Genre, HipHopGenre, JazzFolkGenre, MetalGenre, OtherGenre, PopGenre, RockGenre
 from app.models.genre_song import (
     ElectronicGenreSong,
     ExperimentalGenreSong,
@@ -63,6 +63,17 @@ TABLES_TO_CHECK = [
     ElectronicGenreSong,
     ExperimentalGenreSong,
     OtherGenreSong,
+]
+
+GENRE_TABLE_SYNC_CONFIG = [
+    (RockGenre, "rock_id"),
+    (PopGenre, "pop_id"),
+    (JazzFolkGenre, "jazz_folk_id"),
+    (MetalGenre, "metal_id"),
+    (HipHopGenre, "hip_hop_id"),
+    (ElectronicGenre, "electronic_id"),
+    (ExperimentalGenre, "experimental_id"),
+    (OtherGenre, "other_id"),
 ]
 
 
@@ -175,6 +186,21 @@ def _parse_song_limit(song_limit: int | None) -> int | None:
     return parsed_limit
 
 
+def _sync_genres_table(session: Session) -> None:
+    existing_genre_ids = {
+        genre_id for genre_id in session.exec(select(Genre.genre_id)).all()
+    }
+
+    for genre_model, genre_id_field in GENRE_TABLE_SYNC_CONFIG:
+        for specialized_genre in session.exec(select(genre_model)).all():
+            genre_id = getattr(specialized_genre, genre_id_field)
+            if genre_id in existing_genre_ids:
+                continue
+
+            session.add(Genre(genre_id=genre_id, name=specialized_genre.name))
+            existing_genre_ids.add(genre_id)
+
+
 def initialize_db(song_limit: int | None = None) -> None:
     parsed_song_limit = _parse_song_limit(song_limit)
     parquet_path = Path("/app/data/final_dataset.parquet")
@@ -187,6 +213,8 @@ def initialize_db(song_limit: int | None = None) -> None:
 
     with Session(engine) as session:
         if not _all_target_tables_are_empty(session):
+            _sync_genres_table(session)
+            session.commit()
             return
 
         artists_by_name: dict[str, Artist] = {}
@@ -271,4 +299,5 @@ def initialize_db(song_limit: int | None = None) -> None:
                 session.add(link_model(song_id=song.song_id, **{genre_id_field: pair[1]}))
                 genre_song_pairs[link_model].add(pair)
 
+        _sync_genres_table(session)
         session.commit()

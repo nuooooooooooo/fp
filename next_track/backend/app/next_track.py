@@ -9,11 +9,12 @@ from app.controllers.recommendation_controller import (
     router as recommendation_router,
     bootstrap_recommender,
 )
-import app.models  
+from app.controllers.genre_controller import router as genre_router
+import app.models  # Registers all SQLModel tables on import.
 
 
 
-# initializes the app
+# Initializes the app
 app = FastAPI(
     title="NextTrack",
     version="1.0.0",
@@ -24,7 +25,7 @@ app = FastAPI(
 api_router = APIRouter(prefix=settings.API_V1_STR)
 
 
-# sets all CORS enabled origins
+# Sets all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
@@ -33,7 +34,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# creates the database tables when the app starts
+# Creates the database tables when the app starts
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)
@@ -41,7 +42,7 @@ def on_startup():
     with Session(engine) as session:
         bootstrap_recommender(app, session)
 
-#  root endpoint
+#  Root endpoint
 @app.get("/")
 def root():
     return {"message": "API is running"}
@@ -58,4 +59,5 @@ def hello_world():
 
 
 api_router.include_router(recommendation_router)
+api_router.include_router(genre_router)
 app.include_router(api_router)
