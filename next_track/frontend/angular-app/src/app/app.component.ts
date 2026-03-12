@@ -50,7 +50,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   shouldShowHeader(): boolean {
-    return this.router.url !== '/home';
+    return true;
   }
 
   toggleDarkMode(): void {

@@ -1,0 +1,43 @@
+.genre-card {
+  overflow: hidden;
+  transition:
+    transform 150ms ease,
+    filter 150ms ease;
+
+  &:hover {
+    transform: scale(1.02) rotate(-0.4deg);
+    filter: saturate(1.05);
+  }
+}
+
+.card--sunset {
+  background: #f28d6f;
+}
+
+.card--lagoon {
+  background: #56b8c4;
+}
+
+.card--citrus {
+  background: #b7cf62;
+}
+
+.card--berry {
+  background: #cf72bf;
+}
+
+.card--mint {
+  background: #67c89c;
+}
+
+.card--sand {
+  background: #d8a36a;
+}
+
+.card--sky {
+  background: #6fa7eb;
+}
+
+.card--rose {
+  background: #ea7f98;
+}
