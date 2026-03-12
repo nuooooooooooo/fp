@@ -5,9 +5,21 @@
   <title>NextTrack</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <script>
+    (function () {
+      var storageKey = 'next-track-theme';
+      var storedTheme = localStorage.getItem(storageKey);
+      var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var useDark = storedTheme ? storedTheme === 'dark' : prefersDark;
+
+      document.documentElement.classList.toggle('dark', useDark);
+      document.documentElement.style.colorScheme = useDark ? 'dark' : 'light';
+    })();
+  </script>
 </head>
-<body class="bg-gray-50">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
   <app-root></app-root>
 </body>
 </html>

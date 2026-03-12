@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    color-scheme: light;
+}
+
+:root.dark {
+    color-scheme: dark;
+}
 
 // Card background colors for different genres
 .card--random {
@@ -38,3 +45,36 @@
     background: #F9A8D4;
 }
 
+:root.dark {
+    .card--random {
+        background: #34D399;
+    }
+
+    .card--pop {
+        background: #FBBF24;
+    }
+
+    .card--rock {
+        background: #60A5FA;
+    }
+
+    .card--indie {
+        background: #FB7185;
+    }
+
+    .card--classical {
+        background: #A78BFA;
+    }
+
+    .card--funk {
+        background: #FB923C;
+    }
+
+    .card--rnb {
+        background: #22D3EE;
+    }
+
+    .card--lofi {
+        background: #F472B6;
+    }
+}

@@ -1,12 +1,12 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MusicService } from '../../core/services/music.service';
 
 
 @Component({
   selector: 'app-home',
   imports: [
+    RouterLink
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'

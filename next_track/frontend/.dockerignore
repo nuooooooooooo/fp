@@ -1,1 +1,5 @@
 angular-app/node_modules
+angular-app/.angular/cache
+angular-app/dist
+.DS_Store
+.git
