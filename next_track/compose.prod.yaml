@@ -1,0 +1,32 @@
+services:
+  db:
+    ports: []
+    restart: unless-stopped
+
+  api:
+    restart: unless-stopped
+    env_file:
+      - .env.production
+    ports: []
+
+  frontend:
+    restart: unless-stopped
+    ports: []
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - frontend
+      - api
+
+volumes:
+  caddy-data:
+  caddy-config:

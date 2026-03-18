@@ -45,7 +45,7 @@ def _longest_common_suffix_weight(longest_common_suffix_length: int) -> float:
 
 class IRMCRecommender:
     """
-    Session-based recommender using an IR-based Markov Chain (IR-MC) as proposed by Tofani et al. (2022).
+    Session-based recommender using an information retrieval based Markov Chain (IR-MC) as proposed by Tofani et al. (2022).
 
     Training phase: index sessions into an inverted index (O(1) lookups).
     Prediction phase: retrieve candidate sessions via the last query item, then score candidate next-items using the longest common suffix weighting scheme.
@@ -125,7 +125,7 @@ class IRMCRecommender:
         ----------
         query : list of str
             Ordered list of song_ids representing a session.
-            The last item is used for candidate retrieval (Markov step).
+            The last item is used for retrieving candidates.
             Up to n past items are used for longest common suffix scoring.
         exclude : list of str, optional
             Song IDs to exclude from recommendations, can be used to avoid recommending songs already in the session.
@@ -225,6 +225,7 @@ class IRMCRecommender:
         """
         window = list(seed[-window_size:])
         predicted: list[str] = []
+        # exclude all songs in the seed to avoid recommending them again right away
         excluded = set(seed)
 
         for _ in range(n_predictions):
