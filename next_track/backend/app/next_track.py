@@ -38,7 +38,7 @@ app.add_middleware(
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)
-    initialize_db(song_limit=100) # populates the db with the datasets
+    initialize_db(song_limit=38765) # populates the db with the datasets
     with Session(engine) as session:
         bootstrap_recommender(app, session)
 
