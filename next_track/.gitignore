@@ -13,4 +13,5 @@ staticfiles/
 .idea/
 .vscode/
 .env
+.env.production
 documentation/school-material
