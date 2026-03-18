@@ -1,6 +1,6 @@
 import { Environment } from "./environment.type";
 
 export const environment: Environment = {
-    apiUrl: '/api',
+    apiUrl: '',
     production: true
 };
