@@ -10,6 +10,7 @@ from app.services.recommendation_service import IRMCRecommender
 from app.services.session_loader_service import (
     load_sessions_from_db,
     load_sessions_signature,
+    load_song_artists_from_db,
     load_song_genres_from_db,
 )
 from app.services.song_service import fetch_random_song_ids, get_songs_with_artists_by_ids
@@ -25,6 +26,7 @@ def bootstrap_recommender(app: FastAPI, db: Session) -> IRMCRecommender:
     recommender.fit(
         load_sessions_from_db(db),
         song_genres=load_song_genres_from_db(db),
+        song_artists=load_song_artists_from_db(db),
     )
     app.state.recommender = recommender
     app.state.recommender_signature = current_signature
@@ -63,6 +65,7 @@ def get_recommendations(
         n_predictions=5,
         window_size=4,
         genre=selected_genre,
+        should_recommend_new_artists=payload.should_recommend_new_artists if payload else False,
     )
     recommended_songs = get_songs_with_artists_by_ids(db, recommended_song_ids)
 

@@ -1,10 +1,16 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.utils.helpers import normalize_genre_name
 
 
 class RecommendationRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     song_ids: list[str] | None = None
     genre: str | None = None
+    should_recommend_new_artists: bool = Field(
+        default=False,
+        alias="shouldRecommendNewArtists",
+    )
 
     @field_validator("genre")
     @classmethod

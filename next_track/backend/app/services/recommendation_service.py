@@ -62,6 +62,8 @@ class IRMCRecommender:
         self.past_items = past_items
         self.top_k = top_k
         self.genre_match_boost = 2.0
+        self.repeat_artist_penalty = 0.35
+        self.diversity_candidate_pool_size = max(top_k, 50)
 
         # doc_index: session_id -> ordered list of song_ids
         self._doc_index: dict[str, list[str]] = {}
@@ -71,6 +73,8 @@ class IRMCRecommender:
 
         # song_genres: song_id -> normalized genre names (lowercase)
         self._song_genres: dict[str, set[str]] = {}
+        # song_artists: song_id -> normalized artist names (lowercase)
+        self._song_artists: dict[str, set[str]] = {}
         # session_genres: session_id -> normalized genre names (lowercase)
         self._session_genres: dict[str, set[str]] = {}
 
@@ -78,6 +82,7 @@ class IRMCRecommender:
         self,
         db_sessions: dict[str, list[str]],
         song_genres: Optional[dict[str, set[str]]] = None,
+        song_artists: Optional[dict[str, set[str]]] = None,
     ) -> None:
         """
         Training phase
@@ -89,6 +94,7 @@ class IRMCRecommender:
             Build this with load_sessions_from_db() below.
         """
         self._song_genres = song_genres or {}
+        self._song_artists = song_artists or {}
 
         for session_id, song_ids in db_sessions.items():
             if len(song_ids) < 2:
@@ -114,6 +120,8 @@ class IRMCRecommender:
         query: list[str],
         exclude: Optional[list[str]] = None,
         genre: Optional[str] = None,
+        previously_selected_artists: Optional[set[str]] = None,
+        limit: Optional[int] = None,
     ) -> list[str]:
         """
         Prediction phase
@@ -181,6 +189,12 @@ class IRMCRecommender:
                 if genre and genre in self._song_genres.get(next_item, set()):
                     score *= self.genre_match_boost
 
+                if (
+                    previously_selected_artists
+                    and self._song_artists.get(next_item, set()) & previously_selected_artists
+                ):
+                    score *= self.repeat_artist_penalty
+
                 # weight = 0 when lcs = 0 (first-order MC, base case)
                 # weight > 0 exponentially rewards longer common suffixes
                 scores[next_item] += score
@@ -190,9 +204,46 @@ class IRMCRecommender:
             for song_id in exclude:
                 scores.pop(song_id, None)
 
-        # Return top-k sorted by descending score
+        # Return the highest-scoring candidates.
         ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        return [song_id for song_id, _ in ranked[: self.top_k]]
+        ranking_limit = limit if limit is not None else self.top_k
+        return [song_id for song_id, _ in ranked[:ranking_limit]]
+
+    def _select_diverse_candidate(
+        self,
+        ranked_song_ids: list[str],
+        previously_selected_artists: set[str],
+        genre: Optional[str] = None,
+    ) -> str | None:
+        if not ranked_song_ids:
+            return None
+
+        unseen_genre_match: list[str] = []
+        unseen_any_genre: list[str] = []
+
+        for song_id in ranked_song_ids:
+            song_artists = self._song_artists.get(song_id, set())
+            is_new_artist = (
+                not song_artists
+                or not (song_artists & previously_selected_artists)
+            )
+
+            if not is_new_artist:
+                continue
+
+            if genre and genre in self._song_genres.get(song_id, set()):
+                unseen_genre_match.append(song_id)
+                continue
+
+            unseen_any_genre.append(song_id)
+
+        if unseen_genre_match:
+            return unseen_genre_match[0]
+
+        if unseen_any_genre:
+            return unseen_any_genre[0]
+
+        return ranked_song_ids[0]
 
 
     def predict_sequence(
@@ -201,6 +252,7 @@ class IRMCRecommender:
         n_predictions: int = 5,
         window_size: int = 4,
         genre: Optional[str] = None,
+        should_recommend_new_artists: bool = False,
     ) -> list[str]:
         """
         Iteratively predict n_predictions songs using a sliding window.
@@ -227,14 +279,35 @@ class IRMCRecommender:
         predicted: list[str] = []
         # exclude all songs in the seed to avoid recommending them again right away
         excluded = set(seed)
+        previously_selected_artists: set[str] = set()
+
+        if should_recommend_new_artists:
+            for song_id in seed:
+                previously_selected_artists.update(self._song_artists.get(song_id, set()))
 
         for _ in range(n_predictions):
-            top = self.predict(window, exclude=list(excluded), genre=genre)
+            top = self.predict(
+                window,
+                exclude=list(excluded),
+                genre=genre,
+                previously_selected_artists=(
+                    previously_selected_artists if should_recommend_new_artists else None
+                ),
+                limit=self.diversity_candidate_pool_size if should_recommend_new_artists else None,
+            )
             if not top:
                 break
-            next_song = top[0]
+            next_song = (
+                self._select_diverse_candidate(top, previously_selected_artists, genre)
+                if should_recommend_new_artists
+                else top[0]
+            )
+            if next_song is None:
+                break
             predicted.append(next_song)
             excluded.add(next_song)
+            if should_recommend_new_artists:
+                previously_selected_artists.update(self._song_artists.get(next_song, set()))
             window = window[1:] + [next_song]
 
         return predicted

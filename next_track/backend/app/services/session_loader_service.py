@@ -23,6 +23,8 @@ from app.models.genre_song import (
     PopGenreSong,
     RockGenreSong,
 )
+from app.models.artist import Artist
+from app.models.song_artist import SongArtist
 
 
 GENRE_JOIN_CONFIG = [
@@ -84,3 +86,25 @@ def load_song_genres_from_db(db: Session) -> dict[str, set[str]]:
                 song_genres[str(song_id)].add(normalized_genre)
 
     return song_genres
+
+
+def load_song_artists_from_db(db: Session) -> dict[str, set[str]]:
+    """
+    Return song_id -> normalized artist names (lowercase).
+    """
+    artist_rows = db.exec(select(SongArtist.song_id, SongArtist.artist_id)).all()
+
+    song_artists: dict[str, set[str]] = defaultdict(set)
+
+    artist_names_by_id = {
+        str(artist.artist_id): str(artist.name).strip().lower()
+        for artist in db.exec(select(Artist)).all()
+        if str(artist.name).strip()
+    }
+
+    for song_id, artist_id in artist_rows:
+        normalized_artist = artist_names_by_id.get(str(artist_id))
+        if normalized_artist:
+            song_artists[str(song_id)].add(normalized_artist)
+
+    return song_artists
