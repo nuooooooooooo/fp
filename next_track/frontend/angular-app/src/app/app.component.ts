@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { IStaticMethods } from 'preline/preline';
+import { AppPreferencesService } from './core/services/app-preferences.service';
 
 declare global {
   interface Window {
@@ -27,8 +28,12 @@ export class AppComponent implements OnInit, OnDestroy {
     this.applyTheme(event.matches);
   };
   isDarkMode = false;
+  isSettingsMenuOpen = false;
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private appPreferencesService: AppPreferencesService
+  ) {
   }
 
   ngOnInit(): void {
@@ -58,6 +63,18 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.applyTheme(useDarkMode);
     localStorage.setItem(this.storageKey, useDarkMode ? 'dark' : 'light');
+  }
+
+  get shouldRecommendNewArtists(): boolean {
+    return this.appPreferencesService.shouldRecommendNewArtists;
+  }
+
+  toggleSettingsMenu(): void {
+    this.isSettingsMenuOpen = !this.isSettingsMenuOpen;
+  }
+
+  toggleShouldRecommendNewArtists(): void {
+    this.appPreferencesService.toggleShouldRecommendNewArtists();
   }
 
   private applyTheme(useDarkMode: boolean): void {

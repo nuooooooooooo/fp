@@ -3,6 +3,14 @@ import { RouterLink } from '@angular/router';
 import { Genre } from '../../core/domain/genre';
 import { MusicService } from '../../core/services/music.service';
 
+interface GenreTile {
+  id: string;
+  name: string;
+  routeSegment: string;
+}
+
+const ANY_GENRE_ROUTE_SEGMENT = 'any-genre';
+
 @Component({
   selector: 'app-home',
   imports: [RouterLink],
@@ -11,7 +19,7 @@ import { MusicService } from '../../core/services/music.service';
 })
 export class HomeComponent implements OnInit {
   private readonly musicService: MusicService = inject(MusicService);
-  readonly genres: Genre[] = [];
+  readonly genres: GenreTile[] = [];
   readonly genreCardClasses = [
     'card--sunset',
     'card--lagoon',
@@ -25,7 +33,7 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.musicService.getGenres().subscribe((genres) => {
-      this.genres.splice(0, this.genres.length, ...genres);
+      this.genres.splice(0, this.genres.length, ...this.buildGenreTiles(genres));
     });
   }
 
@@ -35,5 +43,25 @@ export class HomeComponent implements OnInit {
 
   getGenreDisplayName(name: string): string {
     return name.toLowerCase() === 'other' ? 'Any genre' : name;
+  }
+
+  private buildGenreTiles(genres: Genre[]): GenreTile[] {
+    const genreTiles = genres
+      .filter((genre) => genre.name.toLowerCase() !== 'other')
+      .map((genre) => ({
+        id: genre.id,
+        name: genre.name,
+        routeSegment: genre.name,
+      }));
+
+    genreTiles.push({
+      id: 'any-genre',
+      name: 'Any genre',
+      routeSegment: ANY_GENRE_ROUTE_SEGMENT,
+    });
+
+    return genreTiles.sort((left, right) =>
+      left.name.localeCompare(right.name, undefined, { sensitivity: 'base' })
+    );
   }
 }

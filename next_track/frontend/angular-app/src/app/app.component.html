@@ -25,7 +25,7 @@
       </svg>
     </a>
 
-    <div class="flex items-center gap-3">
+    <div class="relative flex items-center gap-3">
       <button
         type="button"
         [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
@@ -74,7 +74,9 @@
       <button
         type="button"
         aria-label="Open settings"
+        [attr.aria-expanded]="isSettingsMenuOpen"
         class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-slate-900 transition hover:border-slate-300 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 dark:border-slate-700 dark:text-slate-100 dark:hover:border-slate-600 dark:hover:bg-slate-900 dark:focus:ring-slate-700 dark:focus:ring-offset-slate-950"
+        (click)="toggleSettingsMenu()"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -92,6 +94,45 @@
           <path d="M4 17h16" />
         </svg>
       </button>
+
+      <div
+        *ngIf="isSettingsMenuOpen"
+        class="absolute top-14 right-0 z-20 min-w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-xl shadow-slate-200/60 dark:border-slate-700 dark:bg-slate-950 dark:shadow-black/30"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+              More diverse artists
+            </p>
+            <p class="mt-1 text-sm leading-5 text-slate-500 dark:text-slate-400">
+              Prefer recommendations from different artists when possible.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            role="switch"
+            [attr.aria-checked]="shouldRecommendNewArtists"
+            [attr.aria-label]="
+              shouldRecommendNewArtists
+                ? 'Disable more diverse artists'
+                : 'Enable more diverse artists'
+            "
+            class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition focus:outline-none focus:ring-2 focus:ring-slate-300 focus:ring-offset-2 dark:focus:ring-slate-700 dark:focus:ring-offset-slate-950"
+            [class.bg-slate-900]="shouldRecommendNewArtists"
+            [class.bg-slate-300]="!shouldRecommendNewArtists"
+            [class.dark:bg-slate-100]="shouldRecommendNewArtists"
+            [class.dark:bg-slate-700]="!shouldRecommendNewArtists"
+            (click)="toggleShouldRecommendNewArtists()"
+          >
+            <span
+              class="inline-block h-5 w-5 transform rounded-full bg-white transition dark:bg-slate-950"
+              [class.translate-x-6]="shouldRecommendNewArtists"
+              [class.translate-x-1]="!shouldRecommendNewArtists"
+            ></span>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </header>

@@ -1,6 +1,7 @@
 export interface RecommendationRequest {
   songIds?: string[];
   genre?: string | null;
+  shouldRecommendNewArtists?: boolean;
 }
 
 export interface RecommendedSong {
@@ -19,6 +20,7 @@ export interface Recommendation {
 export interface RecommendationRequestDto {
   song_ids?: string[];
   genre?: string | null;
+  shouldRecommendNewArtists?: boolean;
 }
 
 export interface RecommendedSongDto {

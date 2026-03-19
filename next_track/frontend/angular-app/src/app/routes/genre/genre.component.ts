@@ -2,9 +2,13 @@ import { Component, DestroyRef, ElementRef, ViewChild, inject, OnInit } from '@a
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { combineLatest } from 'rxjs';
 import { MusicService } from '../../core/services/music.service';
-import { RecommendedSong } from '../../core/domain/recommendation';
+import { RecommendedSong, RecommendationRequest } from '../../core/domain/recommendation';
+import { AppPreferencesService } from '../../core/services/app-preferences.service';
 import { getYoutubeEmbedUrl } from '../../core/utils/helpers/youtube.helper';
+
+const ANY_GENRE_ROUTE_SEGMENT = 'any-genre';
 
 @Component({
   selector: 'app-genre',
@@ -19,6 +23,7 @@ export class GenreComponent implements OnInit {
   private readonly musicService = inject(MusicService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly appPreferencesService = inject(AppPreferencesService);
   private readonly playerOrigins = new Set([
     'https://www.youtube-nocookie.com',
     'https://www.youtube.com',
@@ -56,24 +61,29 @@ export class GenreComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
-      const genreName = params.get('genre') ?? '';
-      this.genreName = genreName;
-      this.loadRecommendations(genreName);
-    });
+    combineLatest([
+      this.route.paramMap,
+      this.appPreferencesService.shouldRecommendNewArtists$,
+    ])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([params, shouldRecommendNewArtists]) => {
+        const genreName = params.get('genre') ?? '';
+        this.genreName = genreName;
+        this.loadRecommendations(genreName, shouldRecommendNewArtists);
+      });
   }
 
   get genreDisplayName(): string {
-    return this.genreName.toLowerCase() === 'other' ? 'Any genre' : this.genreName;
+    return this.isAnyGenreRoute(this.genreName) ? 'Any genre' : this.genreName;
   }
 
   get genreDescription(): string {
-    return this.genreName.toLowerCase() === 'other'
-      ? "Songs that weren't labelled under any genre"
+    return this.isAnyGenreRoute(this.genreName)
+      ? 'Recommendations across all genres.'
       : '';
   }
 
-  private loadRecommendations(genreName: string): void {
+  private loadRecommendations(genreName: string, shouldRecommendNewArtists: boolean): void {
     this.isLoading = true;
     this.errorMessage = '';
     this.songs = [];
@@ -82,7 +92,11 @@ export class GenreComponent implements OnInit {
     this.featuredVideoUrl = null;
     this.isPlaying = false;
 
-    this.musicService.getRecommendations({ genre: genreName }).subscribe({
+    const request: RecommendationRequest = this.isAnyGenreRoute(genreName)
+      ? { shouldRecommendNewArtists }
+      : { genre: genreName, shouldRecommendNewArtists };
+
+    this.musicService.getRecommendations(request).subscribe({
       next: (recommendation) => {
         this.songs = recommendation.recommendedSongs;
         this.updateFeaturedSong();
@@ -179,5 +193,9 @@ export class GenreComponent implements OnInit {
 
   private syncPlaybackState(state?: number): void {
     this.isPlaying = state === 1;
+  }
+
+  private isAnyGenreRoute(genreName: string): boolean {
+    return genreName.toLowerCase() === ANY_GENRE_ROUTE_SEGMENT;
   }
 }

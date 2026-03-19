@@ -17,7 +17,7 @@
     >
       @for (genre of genres; track genre.id; let index = $index) {
         <a
-          [routerLink]="['/', genre.name]"
+          [routerLink]="['/', genre.routeSegment]"
           class="genre-card relative aspect-square rounded-md"
           [class]="getGenreCardClass(index)"
         >

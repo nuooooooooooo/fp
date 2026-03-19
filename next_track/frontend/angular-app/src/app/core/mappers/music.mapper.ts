@@ -25,6 +25,7 @@ export function mapRecommendationRequestToDto(
   return {
     song_ids: request.songIds,
     genre: request.genre,
+    shouldRecommendNewArtists: request.shouldRecommendNewArtists,
   };
 }
 
