@@ -78,9 +78,31 @@
   border-top: 1px solid rgb(226 232 240);
 }
 
+.song-row-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.song-row-button:hover .song-title,
+.song-row-button:focus-visible .song-title {
+  opacity: 0.82;
+}
+
+.song-row-button:focus-visible {
+  outline: 2px solid rgb(148 163 184);
+  outline-offset: 0.45rem;
+  border-radius: 0.65rem;
+}
+
 .song-title {
   font-size: 1.125rem;
   line-height: 1.35;
+  transition: opacity 150ms ease;
 }
 
 .song-title--featured {
@@ -116,6 +138,10 @@
 
 :host-context(.dark) .song-row {
   border-top-color: rgb(51 65 85 / 0.9);
+}
+
+:host-context(.dark) .song-row-button:focus-visible {
+  outline-color: rgb(100 116 139);
 }
 
 @media (max-width: 900px) {

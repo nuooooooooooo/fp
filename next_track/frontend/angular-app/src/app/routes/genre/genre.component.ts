@@ -129,6 +129,16 @@ export class GenreComponent implements OnInit {
     this.updateFeaturedSong(shouldKeepPlaying);
   }
 
+  selectSong(index: number): void {
+    if (index < 0 || index >= this.songs.length || index === this.selectedSongIndex) {
+      return;
+    }
+
+    const shouldKeepPlaying = this.isPlaying;
+    this.selectedSongIndex = index;
+    this.updateFeaturedSong(shouldKeepPlaying);
+  }
+
   togglePlayback(): void {
     if (!this.featuredVideoUrl) {
       return;
