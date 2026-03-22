@@ -19,7 +19,7 @@
         type="button"
         class="media-control media-control--circle genre-refresh-button"
         (click)="refreshRecommendations()"
-        [disabled]="isLoading"
+        [disabled]="isLoading || isFetchingNextBatch"
         aria-label="Refresh playlist"
       >
         <svg
@@ -77,7 +77,7 @@
               type="button"
               class="media-control media-control--circle"
               (click)="showPreviousSong()"
-              [disabled]="selectedSongIndex === 0"
+              [disabled]="!canShowPreviousSong"
               aria-label="Previous song"
             >
               <svg
@@ -130,7 +130,7 @@
               type="button"
               class="media-control media-control--circle"
               (click)="showNextSong()"
-              [disabled]="selectedSongIndex >= songs.length - 1"
+              [disabled]="isFetchingNextBatch || !canShowNextSong"
               aria-label="Next song"
             >
               <svg
@@ -148,6 +148,12 @@
               </svg>
             </button>
           </div>
+
+          @if (inlineErrorMessage) {
+            <p class="mt-4 text-center text-sm text-rose-600 dark:text-rose-300">
+              {{ inlineErrorMessage }}
+            </p>
+          }
         </div>
 
         <div class="song-list">

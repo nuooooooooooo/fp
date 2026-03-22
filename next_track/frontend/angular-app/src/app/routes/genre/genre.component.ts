@@ -46,11 +46,17 @@ export class GenreComponent implements OnInit {
 
   genreName = '';
   songs: RecommendedSong[] = [];
+  recommendationHistory: RecommendedSong[][] = [];
+  requestedSongIds: string[] = [];
   isLoading = true;
+  isFetchingNextBatch = false;
+  hasMoreRecommendations = true;
   errorMessage = '';
+  inlineErrorMessage = '';
   featuredSong: RecommendedSong | null = null;
   featuredVideoUrl: SafeResourceUrl | null = null;
   selectedSongIndex = 0;
+  historyBatchIndex = 0;
   isPlaying = false;
 
   constructor() {
@@ -83,6 +89,18 @@ export class GenreComponent implements OnInit {
       : '';
   }
 
+  get canShowPreviousSong(): boolean {
+    return this.selectedSongIndex > 0 || this.historyBatchIndex > 0;
+  }
+
+  get canShowNextSong(): boolean {
+    return (
+      this.selectedSongIndex < this.songs.length - 1
+      || this.historyBatchIndex < this.recommendationHistory.length - 1
+      || this.hasMoreRecommendations
+    );
+  }
+
   refreshRecommendations(): void {
     this.loadRecommendations(
       this.genreName,
@@ -92,21 +110,25 @@ export class GenreComponent implements OnInit {
 
   private loadRecommendations(genreName: string, shouldRecommendNewArtists: boolean): void {
     this.isLoading = true;
+    this.isFetchingNextBatch = false;
+    this.hasMoreRecommendations = true;
     this.errorMessage = '';
+    this.inlineErrorMessage = '';
     this.songs = [];
+    this.recommendationHistory = [];
+    this.requestedSongIds = [];
+    this.historyBatchIndex = 0;
     this.selectedSongIndex = 0;
     this.featuredSong = null;
     this.featuredVideoUrl = null;
     this.isPlaying = false;
 
-    const request: RecommendationRequest = this.isAnyGenreRoute(genreName)
-      ? { shouldRecommendNewArtists }
-      : { genre: genreName, shouldRecommendNewArtists };
-
-    this.musicService.getRecommendations(request).subscribe({
+    this.musicService.getRecommendations(
+      this.buildRecommendationRequest(genreName, shouldRecommendNewArtists)
+    ).subscribe({
       next: (recommendation) => {
-        this.songs = recommendation.recommendedSongs;
-        this.updateFeaturedSong();
+        this.inlineErrorMessage = '';
+        this.setRecommendationHistory(recommendation.recommendedSongs);
         this.isLoading = false;
       },
       error: () => {
@@ -117,23 +139,47 @@ export class GenreComponent implements OnInit {
   }
 
   showPreviousSong(): void {
-    if (this.selectedSongIndex <= 0) {
+    if (!this.canShowPreviousSong) {
       return;
     }
 
     const shouldKeepPlaying = this.isPlaying;
-    this.selectedSongIndex -= 1;
-    this.updateFeaturedSong(shouldKeepPlaying);
+
+    if (this.selectedSongIndex > 0) {
+      this.selectedSongIndex -= 1;
+      this.updateFeaturedSong(shouldKeepPlaying);
+      return;
+    }
+
+    const previousBatchIndex = this.historyBatchIndex - 1;
+    const previousBatch = this.recommendationHistory[previousBatchIndex];
+
+    if (!previousBatch?.length) {
+      return;
+    }
+
+    this.setActiveBatch(previousBatchIndex, previousBatch.length - 1, shouldKeepPlaying);
   }
 
   showNextSong(): void {
-    if (this.selectedSongIndex >= this.songs.length - 1) {
+    if (this.isFetchingNextBatch || !this.canShowNextSong) {
       return;
     }
 
     const shouldKeepPlaying = this.isPlaying;
-    this.selectedSongIndex += 1;
-    this.updateFeaturedSong(shouldKeepPlaying);
+
+    if (this.selectedSongIndex < this.songs.length - 1) {
+      this.selectedSongIndex += 1;
+      this.updateFeaturedSong(shouldKeepPlaying);
+      return;
+    }
+
+    if (this.historyBatchIndex < this.recommendationHistory.length - 1) {
+      this.setActiveBatch(this.historyBatchIndex + 1, 0, shouldKeepPlaying);
+      return;
+    }
+
+    this.fetchNextRecommendationBatch(shouldKeepPlaying);
   }
 
   selectSong(index: number): void {
@@ -171,6 +217,85 @@ export class GenreComponent implements OnInit {
           )
         )
       : null;
+  }
+
+  private fetchNextRecommendationBatch(autoplay: boolean): void {
+    if (!this.requestedSongIds.length) {
+      return;
+    }
+
+    this.isFetchingNextBatch = true;
+    this.inlineErrorMessage = '';
+
+    this.musicService.getRecommendations(
+      this.buildRecommendationRequest(
+        this.genreName,
+        this.appPreferencesService.shouldRecommendNewArtists,
+        this.requestedSongIds
+      )
+    ).subscribe({
+      next: (recommendation) => {
+        this.isFetchingNextBatch = false;
+
+        if (!recommendation.recommendedSongs.length) {
+          this.hasMoreRecommendations = false;
+          this.inlineErrorMessage = 'No more recommendations available right now.';
+          return;
+        }
+
+        this.hasMoreRecommendations = true;
+        this.inlineErrorMessage = '';
+        this.appendRecommendationBatch(recommendation.recommendedSongs, autoplay);
+      },
+      error: () => {
+        this.isFetchingNextBatch = false;
+        this.inlineErrorMessage = 'Could not load more recommendations.';
+      },
+    });
+  }
+
+  private buildRecommendationRequest(
+    genreName: string,
+    shouldRecommendNewArtists: boolean,
+    songIds?: string[]
+  ): RecommendationRequest {
+    const request: RecommendationRequest = this.isAnyGenreRoute(genreName)
+      ? { shouldRecommendNewArtists }
+      : { genre: genreName, shouldRecommendNewArtists };
+
+    if (songIds?.length) {
+      request.songIds = songIds;
+    }
+
+    return request;
+  }
+
+  private setRecommendationHistory(recommendedSongs: RecommendedSong[]): void {
+    this.recommendationHistory = [];
+    this.requestedSongIds = [];
+    this.appendRecommendationBatch(recommendedSongs, false);
+  }
+
+  private appendRecommendationBatch(
+    recommendedSongs: RecommendedSong[],
+    autoplay: boolean
+  ): void {
+    this.recommendationHistory.push(recommendedSongs);
+    this.requestedSongIds.push(...recommendedSongs.map((song) => song.songId));
+    this.setActiveBatch(this.recommendationHistory.length - 1, 0, autoplay);
+  }
+
+  private setActiveBatch(
+    batchIndex: number,
+    songIndex: number,
+    autoplay: boolean
+  ): void {
+    const batch = this.recommendationHistory[batchIndex] ?? [];
+
+    this.historyBatchIndex = batchIndex;
+    this.songs = batch;
+    this.selectedSongIndex = Math.min(songIndex, Math.max(batch.length - 1, 0));
+    this.updateFeaturedSong(autoplay);
   }
 
   private postPlayerCommand(
