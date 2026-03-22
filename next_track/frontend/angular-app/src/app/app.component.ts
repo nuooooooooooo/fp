@@ -58,6 +58,10 @@ export class AppComponent implements OnInit, OnDestroy {
     return true;
   }
 
+  shouldShowHomeButton(): boolean {
+    return !this.isGenreSelectionRoute();
+  }
+
   toggleDarkMode(): void {
     const useDarkMode = !this.isDarkMode;
 
@@ -81,5 +85,9 @@ export class AppComponent implements OnInit, OnDestroy {
     this.isDarkMode = useDarkMode;
     document.documentElement.classList.toggle('dark', useDarkMode);
     document.documentElement.style.colorScheme = useDarkMode ? 'dark' : 'light';
+  }
+
+  private isGenreSelectionRoute(): boolean {
+    return this.router.url === '/home' || this.router.url === '/';
   }
 }

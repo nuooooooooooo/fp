@@ -44,6 +44,14 @@
     transform 150ms ease;
 }
 
+.media-control:focus {
+  outline: none;
+}
+
+.media-control:focus-visible {
+  box-shadow: 0 0 0 2px rgb(203 213 225);
+}
+
 .media-control--circle {
   border-color: rgb(226 232 240);
 }
@@ -59,6 +67,12 @@
   cursor: default;
 }
 
+.media-control.genre-refresh-button {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
 .media-fallback {
   display: grid;
   place-items: center;
@@ -71,6 +85,7 @@
 .song-list {
   display: grid;
   gap: 0;
+  min-width: 0;
 }
 
 .song-row {
@@ -102,6 +117,9 @@
 .song-title {
   font-size: 1.125rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
   transition: opacity 150ms ease;
 }
 
@@ -125,6 +143,10 @@
 
 :host-context(.dark) .media-control {
   color: rgb(226 232 240);
+}
+
+:host-context(.dark) .media-control:focus-visible {
+  box-shadow: 0 0 0 2px rgb(51 65 85);
 }
 
 :host-context(.dark) .media-control--circle {

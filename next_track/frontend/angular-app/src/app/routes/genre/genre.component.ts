@@ -83,6 +83,13 @@ export class GenreComponent implements OnInit {
       : '';
   }
 
+  refreshRecommendations(): void {
+    this.loadRecommendations(
+      this.genreName,
+      this.appPreferencesService.shouldRecommendNewArtists
+    );
+  }
+
   private loadRecommendations(genreName: string, shouldRecommendNewArtists: boolean): void {
     this.isLoading = true;
     this.errorMessage = '';
