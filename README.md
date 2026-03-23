@@ -1,3 +1,3 @@
-Link to the NextTrack application: 
+# NextTrack Session-based Recommender
 
-[here](https://app.nuooooo.online/home)
+Link to the application: [here](https://app.nuooooo.online/home)
